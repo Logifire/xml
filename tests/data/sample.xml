@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<b:bookstore xmlns:b="http://www.example.org/book">
+
+    <b:book category="cooking">
+        <b:title lang="en">Everyday Italian</b:title>
+        <b:author>Giada De Laurentiis</b:author>
+        <b:year>2005</b:year>
+        <b:price>30.00</b:price>
+    </b:book>
+
+    <b:book category="children">
+        <b:title lang="en">Harry Potter</b:title>
+        <b:author>J K. Rowling</b:author>
+        <b:year>2005</b:year>
+        <b:price>29.99</b:price>
+    </b:book>
+
+    <b:book category="web">
+        <b:title lang="en">XQuery Kick Start</b:title>
+        <b:author>James McGovern</b:author>
+        <b:author>Per Bothner</b:author>
+        <b:author>Kurt Cagle</b:author>
+        <b:author>James Linn</b:author>
+        <b:author>Vaidyanathan Nagarajan</b:author>
+        <b:year>2003</b:year>
+        <b:price>49.99</b:price>
+    </b:book>
+
+    <b:book category="web">
+        <b:title lang="en">Learning XML</b:title>
+        <b:author>Erik T. Ray</b:author>
+        <b:year>2003</b:year>
+        <b:price>39.95</b:price>
+    </b:book>
+
+</b:bookstore>

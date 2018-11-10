@@ -1,0 +1,21 @@
+{
+    "name": "logifire/xml-reader",
+    "description": "Type safe XML reader using SimpleXMLElement internally",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^7.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Logifire",
+            "email": "Logifire@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Logifire\\XML\\": "src/"
+        }
+    }
+}
