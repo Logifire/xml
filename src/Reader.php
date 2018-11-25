@@ -51,7 +51,13 @@ final class Reader {
     }
 
     public function hasNode(string $xpath): bool {
-        return !empty($this->xml->xpath($xpath));
+        $nodes = @$this->xml->xpath($xpath);
+
+        if ($nodes === false) {
+            throw new ReaderException("Invalid path (syntax): \"{$xpath}\"", ReaderException::INVALID_PATH);
+        }
+
+        return !empty($nodes);
     }
 
     /**
@@ -95,18 +101,22 @@ final class Reader {
     private function getLeafNode(string $xpath): SimpleXMLElement {
         $nodes = @$this->xml->xpath($xpath);
 
+        if ($nodes === false) {
+            throw new ReaderException("Invalid path (syntax): \"{$xpath}\"", ReaderException::INVALID_PATH);
+        }
+
         if (empty($nodes)) {
-            throw new ReaderException("Path: \"{$xpath}\" not found.");
+            throw new ReaderException("Path: \"{$xpath}\" not found.", ReaderException::PATH_NOT_FOUND);
         }
 
         if (count($nodes) > 1) {
-            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.");
+            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.", ReaderException::AMBIGUOUS_PATH);
         }
 
         $node = $nodes[0];
 
         if ($node->children(self::$namespace) !== null && count($node->children(self::$namespace)) > 0) {
-            throw new ReaderException("Path: \"{$xpath}\" is not a leaf node.");
+            throw new ReaderException("Path: \"{$xpath}\" is not a leaf node.", ReaderException::NOT_A_LEAF_NODE);
         }
 
         return $node;
