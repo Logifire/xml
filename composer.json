@@ -1,5 +1,5 @@
 {
-    "name": "logifire/xml-reader",
+    "name": "logifire/xml",
     "description": "Type safe XML reader using SimpleXMLElement internally",
     "type": "library",
     "require-dev": {

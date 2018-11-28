@@ -60,30 +60,12 @@ final class Reader {
         return !empty($nodes);
     }
 
-    /**
-     * Accepts empty string in the XML
-     *
-     * @param string $xpath
-     *
-     * @return string
-     *
-     * @throws ReaderException
-     */
     public function getString(string $xpath): string {
         $value = (string) $this->getLeafNode($xpath);
 
         return $this->trim($value);
     }
 
-    /**
-     * Must be a numeric value in the XML
-     *
-     * @param string $xpath
-     *
-     * @return int
-     *
-     * @throws ReaderException
-     */
     public function getInt(string $xpath): int {
         $value = (string) $this->getLeafNode($xpath);
 
@@ -129,13 +111,6 @@ final class Reader {
         return $text;
     }
 
-    /**
-     * @param string $xpath Path to the child nodes, not the parent
-     *
-     * @return Reader[]
-     *
-     * @throws ReaderException
-     */
     public function getCollection(string $xpath): array {
         $readers = [];
         $children = @$this->xml->xpath($xpath);
