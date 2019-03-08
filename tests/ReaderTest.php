@@ -4,7 +4,8 @@ use Logifire\XML\Exception\ReaderException;
 use Logifire\XML\Reader;
 use PHPUnit\Framework\TestCase;
 
-class ReaderTest extends TestCase {
+class ReaderTest extends TestCase
+{
 
     public const NAMESPACE = 'http://www.example.org/book';
     public const BOOKSTORE = '/t:bookstore';
@@ -14,11 +15,13 @@ class ReaderTest extends TestCase {
     public const AUTHOUR = self::BOOK . '/t:author';
     public const PREFIX = 't';
 
-    private function getXML(): string {
+    private function getXML(): string
+    {
         return file_get_contents(__DIR__ . '/data/sample.xml');
     }
 
-    public function testReader() {
+    public function testReader()
+    {
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $this->assertTrue($reader->hasNode(self::BOOKSTORE));
@@ -30,50 +33,75 @@ class ReaderTest extends TestCase {
         /* @var $book Reader */
         $book = $collection[0];
         $this->assertSame(
-                'cooking',
-                $book->getString('@category'),
-                'Get attribute via relative path from collection');
+            'cooking',
+            $book->getString('@category'),
+            'Get attribute via relative path from collection');
         $this->assertSame(
-                'cooking',
-                $reader->getString(self::FIRST_BOOK_CATEGORY),
-                'Get attribute');
+            'cooking',
+            $reader->getString(self::FIRST_BOOK_CATEGORY),
+            'Get attribute');
 
         $this->assertSame(2005, $reader->getInt(self::FIRST_BOOK_YEAR));
     }
 
-    public function testInvalidSyntax() {
+    public function testInvalidSyntax()
+    {
         $this->expectExceptionCode(ReaderException::INVALID_PATH);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::BOOKSTORE . '@invalid');
     }
 
-    public function testPathNotFound() {
+    public function testPathNotFound()
+    {
         $this->expectExceptionCode(ReaderException::PATH_NOT_FOUND);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::BOOKSTORE . '/invalid');
     }
 
-    public function testAmbiguousPath() {
+    public function testAmbiguousPath()
+    {
         $this->expectExceptionCode(ReaderException::AMBIGUOUS_PATH);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::AUTHOUR);
     }
 
-    public function testNotALeafNode() {
+    public function testNotALeafNode()
+    {
         $this->expectExceptionCode(ReaderException::NOT_A_LEAF_NODE);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::BOOKSTORE);
     }
 
-    public function testHasNodeInvalidSyntax() {
+    public function testHasNodeInvalidSyntax()
+    {
         $this->expectExceptionCode(ReaderException::INVALID_PATH);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->hasNode(self::BOOKSTORE . '@invalid');
     }
 
+    public function testMultipleNamespace()
+    {
+        $xml = $this->getXML();
+        $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
+        $reader->registerNamespace('http://www.example.org/identification', 'n');
+
+        $this->assertTrue($reader->hasNode(self::BOOKSTORE . '/identification/n:int'));
+
+        $collection = $reader->getCollection(self::BOOKSTORE . '/identification/n:int');
+        
+        $numbers = [];
+        
+        foreach ($collection as $node) {
+            /* @var $node Reader */
+            $numbers[] = $node->getInt();
+        }
+        
+        $expected = [1, 2];
+        $this->assertSame($expected, $numbers);
+    }
 }

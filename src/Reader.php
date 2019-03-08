@@ -51,6 +51,15 @@ final class Reader
         return new self($simple_xml_element);
     }
 
+    public function registerNamespace(string $namespace, string $prefix): void
+    {
+//        if ($namespace && !in_array($namespace, $this->xml->getDocNamespaces())) {
+//            throw new ReaderException($namespace . ' is not declared in the document.');
+//        }
+
+        $this->xml->registerXPathNamespace($prefix, $namespace);
+    }
+
     public function hasNode(string $xpath): bool
     {
         $nodes = @$this->xml->xpath($xpath);
@@ -62,14 +71,14 @@ final class Reader
         return !empty($nodes);
     }
 
-    public function getString(string $xpath): string
+    public function getString(?string $xpath = null): string
     {
         $value = (string) $this->getLeafNode($xpath);
 
         return $this->trim($value);
     }
 
-    public function getInt(string $xpath): int
+    public function getInt(?string $xpath = null): int
     {
         $value = (string) $this->getLeafNode($xpath);
 
@@ -84,9 +93,13 @@ final class Reader
         return (int) $value;
     }
 
-    private function getLeafNode(string $xpath): SimpleXMLElement
+    private function getLeafNode(?string $xpath): SimpleXMLElement
     {
-        $nodes = @$this->xml->xpath($xpath);
+        if ($xpath !== null) {
+            $nodes = @$this->xml->xpath($xpath);
+        } else {
+            $nodes = $this->xml;
+        }
 
         if ($nodes === false) {
             throw new ReaderException("Invalid path (syntax): \"{$xpath}\"", ReaderException::INVALID_PATH);

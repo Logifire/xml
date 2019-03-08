@@ -34,4 +34,8 @@
         <b:price>39.95</b:price>
     </b:book>
 
+    <identification xmlns:m="http://www.example.org/identification">
+        <m:int>1</m:int>
+        <m:int>2</m:int>
+    </identification>
 </b:bookstore>
