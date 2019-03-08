@@ -1,14 +1,13 @@
 <?php
-
 declare(strict_types=1);
-
 namespace Logifire\XML;
 
 use Exception;
 use Logifire\XML\Exception\ReaderException;
 use SimpleXMLElement;
 
-final class Reader {
+final class Reader
+{
 
     /**
      * @var string|null
@@ -25,7 +24,8 @@ final class Reader {
      */
     private $xml;
 
-    private function __construct(SimpleXMLElement $xml) {
+    private function __construct(SimpleXMLElement $xml)
+    {
         if (self::$namespace && self::$prefix) {
             $xml->registerXPathNamespace(self::$prefix, self::$namespace);
         }
@@ -33,7 +33,8 @@ final class Reader {
         $this->xml = $xml;
     }
 
-    public static function create(string $xml, ?string $namespace = null, ?string $prefix = null): Reader {
+    public static function create(string $xml, ?string $namespace = null, ?string $prefix = null): Reader
+    {
         try {
             $simple_xml_element = new SimpleXMLElement($xml);
         } catch (Exception $e) {
@@ -50,7 +51,8 @@ final class Reader {
         return new self($simple_xml_element);
     }
 
-    public function hasNode(string $xpath): bool {
+    public function hasNode(string $xpath): bool
+    {
         $nodes = @$this->xml->xpath($xpath);
 
         if ($nodes === false) {
@@ -60,13 +62,15 @@ final class Reader {
         return !empty($nodes);
     }
 
-    public function getString(string $xpath): string {
+    public function getString(string $xpath): string
+    {
         $value = (string) $this->getLeafNode($xpath);
 
         return $this->trim($value);
     }
 
-    public function getInt(string $xpath): int {
+    public function getInt(string $xpath): int
+    {
         $value = (string) $this->getLeafNode($xpath);
 
         if (strlen($value) === 0) {
@@ -80,7 +84,8 @@ final class Reader {
         return (int) $value;
     }
 
-    private function getLeafNode(string $xpath): SimpleXMLElement {
+    private function getLeafNode(string $xpath): SimpleXMLElement
+    {
         $nodes = @$this->xml->xpath($xpath);
 
         if ($nodes === false) {
@@ -104,14 +109,21 @@ final class Reader {
         return $node;
     }
 
-    private function trim(string $text): string {
+    private function trim(string $text): string
+    {
         $text = preg_replace('/^\s+/u', '', $text);
         $text = preg_replace('/\s+$/u', '', $text);
 
         return $text;
     }
 
-    public function getCollection(string $xpath): array {
+    /**
+     * @param string $xpath
+     * @return Reader[]
+     * @throws ReaderExceptionreturn
+     */
+    public function getCollection(string $xpath): array
+    {
         $readers = [];
         $children = @$this->xml->xpath($xpath);
 
@@ -125,5 +137,4 @@ final class Reader {
 
         return $readers;
     }
-
 }
