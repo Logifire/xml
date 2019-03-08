@@ -10,25 +10,12 @@ final class Reader
 {
 
     /**
-     * @var string|null
-     */
-    private static $prefix;
-
-    /**
-     * @var string|null
-     */
-    private static $namespace;
-
-    /**
      * @var SimpleXMLElement
      */
     private $xml;
 
     private function __construct(SimpleXMLElement $xml)
     {
-        if (self::$namespace && self::$prefix) {
-            $xml->registerXPathNamespace(self::$prefix, self::$namespace);
-        }
 
         $this->xml = $xml;
     }
@@ -45,17 +32,20 @@ final class Reader
             throw new ReaderException($namespace . ' is not declared in the document.');
         }
 
-        self::$namespace = $namespace;
-        self::$prefix = $prefix;
+        if ($namespace && !$prefix) {
+            throw new ReaderException("Missing prefix for {$namespace}");
+        }
 
-        return new self($simple_xml_element);
+        if ($namespace && $prefix) {
+            $simple_xml_element->registerXPathNamespace($prefix, $namespace);
+        }
+
+        $reader = new self($simple_xml_element);
+        return $reader;
     }
 
     public function registerNamespace(string $namespace, string $prefix): void
     {
-//        if ($namespace && !in_array($namespace, $this->xml->getDocNamespaces())) {
-//            throw new ReaderException($namespace . ' is not declared in the document.');
-//        }
 
         $this->xml->registerXPathNamespace($prefix, $namespace);
     }
@@ -106,7 +96,8 @@ final class Reader
         }
 
         if (empty($nodes)) {
-            throw new ReaderException("Path: \"{$xpath}\" not found.", ReaderException::PATH_NOT_FOUND);
+            $msg = $xpath ? "Path: \"{$xpath}\" not found." : 'Node does not contain a simple value.';
+            throw new ReaderException($msg, ReaderException::PATH_NOT_FOUND);
         }
 
         if (count($nodes) > 1) {
@@ -115,8 +106,10 @@ final class Reader
 
         $node = $nodes[0];
 
-        if ($node->children(self::$namespace) !== null && count($node->children(self::$namespace)) > 0) {
-            throw new ReaderException("Path: \"{$xpath}\" is not a leaf node.", ReaderException::NOT_A_LEAF_NODE);
+        // TODO: Namespace match 
+        if ($node->children() !== null && count($node->children()) > 0) {
+            $msg = $xpath ? "Path: \"{$xpath}\" is not a leaf node." : 'This is not a leaf node';
+            throw new ReaderException($msg, ReaderException::NOT_A_LEAF_NODE);
         }
 
         return $node;

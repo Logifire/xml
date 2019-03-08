@@ -84,7 +84,7 @@ class ReaderTest extends TestCase
         $reader->hasNode(self::BOOKSTORE . '@invalid');
     }
 
-    public function testMultipleNamespace()
+    public function testMultipleNamespaces()
     {
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
@@ -93,15 +93,52 @@ class ReaderTest extends TestCase
         $this->assertTrue($reader->hasNode(self::BOOKSTORE . '/identification/n:int'));
 
         $collection = $reader->getCollection(self::BOOKSTORE . '/identification/n:int');
-        
+
         $numbers = [];
-        
-        foreach ($collection as $node) {
+
+        for ($i = 1; $i <= count($collection); $i++) {
             /* @var $node Reader */
-            $numbers[] = $node->getInt();
+            $numbers[] = $reader->getInt(self::BOOKSTORE . "/identification/n:int[{$i}]");
         }
-        
+
         $expected = [1, 2];
         $this->assertSame($expected, $numbers);
+    }
+
+    public function testRelativeNode()
+    {
+        $xml = $this->getXML();
+        $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
+        $reader->registerNamespace('http://www.example.org/identification', 'n');
+        $collection = $reader->getCollection(self::BOOKSTORE . '/identification/n:int');
+
+        $numbers = [];
+
+        /* @var $node Reader */
+        foreach ($collection as $node) {
+            $numbers[] = $node->getInt();
+        }
+
+        $expected = [1, 2];
+        $this->assertSame($expected, $numbers);
+    }
+
+    public function testRelativeNodeNotALeafSimpleValue()
+    {
+        $this->expectExceptionCode(ReaderException::PATH_NOT_FOUND);
+        $xml = $this->getXML();
+        $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
+        $reader->registerNamespace('http://www.example.org/identification', 'n');
+        $reader = $reader->getCollection(self::BOOKSTORE . '/identification')[0];
+        $reader->getInt();
+    }
+
+    public function testRelativeNodeNotALeaf()
+    {
+        $this->expectExceptionCode(ReaderException::NOT_A_LEAF_NODE);
+        $xml = $this->getXML();
+        $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
+        $reader = $reader->getCollection(self::BOOKSTORE)[0];
+        $reader->getString();
     }
 }
