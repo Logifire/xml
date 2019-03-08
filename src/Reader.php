@@ -120,7 +120,7 @@ final class Reader
     /**
      * @param string $xpath
      * @return Reader[]
-     * @throws ReaderExceptionreturn
+     * @throws ReaderException
      */
     public function getCollection(string $xpath): array
     {
