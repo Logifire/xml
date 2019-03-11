@@ -47,6 +47,12 @@ final class Reader
     public function registerNamespace(string $namespace, string $prefix): void
     {
 
+        $namespaces = $this->xml->getNamespaces(true);
+
+        if (!in_array($namespace, $namespaces)) {
+            throw new ReaderException($namespace . ' is not declared in the document.');
+        }
+
         $this->xml->registerXPathNamespace($prefix, $namespace);
     }
 
@@ -104,10 +110,19 @@ final class Reader
             throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.", ReaderException::AMBIGUOUS_PATH);
         }
 
+        /* @var $node SimpleXMLElement */
         $node = $nodes[0];
 
-        // TODO: Namespace match 
-        if ($node->children() !== null && count($node->children()) > 0) {
+        /*
+         * 2019-03-11
+         * According to the PHP documentation http://php.net/manual/en/simplexmlelement.children.php, this cannot be null.
+         * But if you use xpath, and select an attribute, this will return null
+         * 
+         * The node is namespace aware.
+         */
+        $children = $node->children();
+
+        if ($children !== null && count($children) > 0) {
             $msg = $xpath ? "Path: \"{$xpath}\" is not a leaf node." : 'This is not a leaf node';
             throw new ReaderException($msg, ReaderException::NOT_A_LEAF_NODE);
         }
