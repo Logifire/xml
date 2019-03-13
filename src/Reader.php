@@ -29,7 +29,7 @@ final class Reader
         }
 
         if ($namespace && !in_array($namespace, $simple_xml_element->getDocNamespaces())) {
-            throw new ReaderException($namespace . ' is not declared in the document.');
+            throw new ReaderException($namespace . ' is not declared in the document.', ReaderException::INVALID_NAMESPACE);
         }
 
         if ($namespace && !$prefix) {
@@ -44,13 +44,20 @@ final class Reader
         return $reader;
     }
 
+    public function hasNamespace(string $namespace): bool
+    {
+        $namespaces = $this->xml->getNamespaces(true);
+        return in_array($namespace, $namespaces);
+    }
+
+    /**
+     * You should call the hasNamespace method before calling this.
+     * @see self::hasNamespace()
+     */
     public function registerNamespace(string $namespace, string $prefix): void
     {
-
-        $namespaces = $this->xml->getNamespaces(true);
-
-        if (!in_array($namespace, $namespaces)) {
-            throw new ReaderException($namespace . ' is not declared in the document.');
+        if (!$this->hasNamespace($namespace)) {
+            throw new ReaderException($namespace . ' is not declared in the document.', ReaderException::INVALID_NAMESPACE);
         }
 
         $this->xml->registerXPathNamespace($prefix, $namespace);
