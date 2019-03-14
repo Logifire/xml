@@ -96,55 +96,6 @@ final class Reader
         return (int) $value;
     }
 
-    private function getLeafNode(?string $xpath): SimpleXMLElement
-    {
-        if ($xpath !== null) {
-            $nodes = @$this->xml->xpath($xpath);
-        } else {
-            $nodes = $this->xml;
-        }
-
-        if ($nodes === false) {
-            throw new ReaderException("Invalid path (syntax): \"{$xpath}\"", ReaderException::INVALID_PATH);
-        }
-
-        if (empty($nodes)) {
-            $msg = $xpath ? "Path: \"{$xpath}\" not found." : 'Node does not contain a simple value.';
-            throw new ReaderException($msg, ReaderException::PATH_NOT_FOUND);
-        }
-
-        if (count($nodes) > 1) {
-            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.", ReaderException::AMBIGUOUS_PATH);
-        }
-
-        /* @var $node SimpleXMLElement */
-        $node = $nodes[0];
-
-        /*
-         * 2019-03-11
-         * According to the PHP documentation http://php.net/manual/en/simplexmlelement.children.php, this cannot be null.
-         * But if you use xpath, and select an attribute, this will return null
-         * 
-         * The node is namespace aware.
-         */
-        $children = $node->children();
-
-        if ($children !== null && count($children) > 0) {
-            $msg = $xpath ? "Path: \"{$xpath}\" is not a leaf node." : 'This is not a leaf node';
-            throw new ReaderException($msg, ReaderException::NOT_A_LEAF_NODE);
-        }
-
-        return $node;
-    }
-
-    private function trim(string $text): string
-    {
-        $text = preg_replace('/^\s+/u', '', $text);
-        $text = preg_replace('/\s+$/u', '', $text);
-
-        return $text;
-    }
-
     /**
      * @param string $xpath
      * @return Reader[]
@@ -164,5 +115,75 @@ final class Reader
         }
 
         return $readers;
+    }
+
+    private function getLeafNode(?string $xpath): SimpleXMLElement
+    {
+        if ($xpath !== null) {
+            $nodes = @$this->xml->xpath($xpath);
+        } else {
+            $nodes = $this->xml;
+        }
+
+        if ($nodes === false) {
+            throw new ReaderException("Invalid path (syntax): \"{$xpath}\"", ReaderException::INVALID_PATH);
+        }
+
+        if (empty($nodes)) {
+            $msg = $xpath ? "Path: \"{$xpath}\" not found." : 'Node does not contain a simple value.';
+            $code = $xpath ? ReaderException::PATH_NOT_FOUND : ReaderException::NOT_A_VALUE;
+            throw new ReaderException($msg, $code);
+        }
+
+        if (count($nodes) > 1) {
+            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.", ReaderException::AMBIGUOUS_PATH);
+        }
+
+        $node = $nodes[0];
+
+        $has_children = $this->hasChildren($node);
+
+        if ($has_children) {
+            $msg = $xpath ? "Path: \"{$xpath}\" is not a leaf node." : 'This is not a leaf node';
+            throw new ReaderException($msg, ReaderException::NOT_A_LEAF_NODE);
+        }
+
+        return $node;
+    }
+
+    /**
+     * 2019-03-11
+     * According to the PHP documentation http://php.net/manual/en/simplexmlelement.children.php, this cannot be null.
+     * But if you use xpath, and select an attribute, this will return null
+     */
+    private function hasChildren(SimpleXMLElement $node): bool
+    {
+
+        $has_children = false;
+        $namespaces = $node->getNamespaces() ?: $node->getDocNamespaces();
+        $namespaces[] = null; // If no namespace is present
+
+        foreach ($namespaces as $namespace) {
+            $children = $node->children($namespace);
+            if ($children === null) {
+                // Not a node, can't have children
+                $has_children = false;
+                break;
+            }
+            if (count($children) > 0) {
+                $has_children = true;
+                break;
+            }
+        }
+
+        return $has_children;
+    }
+
+    private function trim(string $text): string
+    {
+        $text = preg_replace('/^\s+/u', '', $text);
+        $text = preg_replace('/\s+$/u', '', $text);
+
+        return $text;
     }
 }

@@ -90,15 +90,15 @@ class ReaderTest extends TestCase
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
 
-        $this->assertTrue($reader->hasNode(self::BOOKSTORE . '/identification/n:int'));
+        $this->assertTrue($reader->hasNode(self::BOOKSTORE . '/n:identification/n:int'));
 
-        $collection = $reader->getCollection(self::BOOKSTORE . '/identification/n:int');
+        $collection = $reader->getCollection(self::BOOKSTORE . '/n:identification/n:int');
 
         $numbers = [];
 
         for ($i = 1; $i <= count($collection); $i++) {
             /* @var $node Reader */
-            $numbers[] = $reader->getInt(self::BOOKSTORE . "/identification/n:int[{$i}]");
+            $numbers[] = $reader->getInt(self::BOOKSTORE . "/n:identification/n:int[{$i}]");
         }
 
         $expected = [1, 2];
@@ -110,7 +110,7 @@ class ReaderTest extends TestCase
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
-        $collection = $reader->getCollection(self::BOOKSTORE . '/identification/n:int');
+        $collection = $reader->getCollection(self::BOOKSTORE . '/n:identification/n:int');
 
         $numbers = [];
 
@@ -125,17 +125,17 @@ class ReaderTest extends TestCase
 
     public function testRelativeNodeNotALeafSimpleValue()
     {
-        $this->expectExceptionCode(ReaderException::PATH_NOT_FOUND);
+        $this->expectExceptionCode(ReaderException::NOT_A_VALUE);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
-        $reader = $reader->getCollection(self::BOOKSTORE . '/identification')[0];
+        $reader = $reader->getCollection(self::BOOKSTORE . '/n:identification')[0];
         $reader->getInt();
     }
 
     public function testRelativeNodeNotALeaf()
     {
-        $this->expectExceptionCode(ReaderException::NOT_A_LEAF_NODE);
+        $this->expectExceptionCode(ReaderException::NOT_A_VALUE);
         $xml = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader = $reader->getCollection(self::BOOKSTORE)[0];
