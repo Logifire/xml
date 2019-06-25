@@ -141,4 +141,13 @@ class ReaderTest extends TestCase
         $reader = $reader->getCollection(self::BOOKSTORE)[0];
         $reader->getString();
     }
+
+    public function testInvalidXml()
+    {
+        $this->expectExceptionCode(ReaderException::INVALID_XML);
+
+        $xml = '<broken>';
+        
+        Reader::create($xml);
+    }
 }

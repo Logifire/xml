@@ -13,5 +13,6 @@ class ReaderException extends RuntimeException
     public const NOT_A_LEAF_NODE = 4;
     public const INVALID_NAMESPACE = 5;
     public const NOT_A_VALUE = 6;
+    public const INVALID_XML = 7;
 
 }

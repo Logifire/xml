@@ -22,10 +22,26 @@ final class Reader
 
     public static function create(string $xml, ?string $namespace = null, ?string $prefix = null): Reader
     {
+        $libxml_error_init_setting = libxml_use_internal_errors(true);
+
         try {
             $simple_xml_element = new SimpleXMLElement($xml);
         } catch (Exception $e) {
-            throw new ReaderException($e->getMessage());
+            /** @var $error LibXMLError */
+            $errors = libxml_get_errors();
+
+            if (!empty($errors)) {
+                foreach ($errors as $libxml_error) {
+                    /** @var $libxml_error libXMLError */
+                    $error_messages[] = $libxml_error->message;
+                }
+                $error_message = implode(', ', $error_messages);
+            } else {
+                $error_message = $e->getMessage();
+            }
+            throw new ReaderException($error_message, ReaderException::INVALID_XML, $e);
+        } finally {
+            libxml_use_internal_errors($libxml_error_init_setting);
         }
 
         if ($namespace && !in_array($namespace, $simple_xml_element->getDocNamespaces())) {
