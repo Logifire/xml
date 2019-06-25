@@ -27,12 +27,10 @@ final class Reader
         try {
             $simple_xml_element = new SimpleXMLElement($xml);
         } catch (Exception $e) {
-            /** @var $error LibXMLError */
             $errors = libxml_get_errors();
 
             if (!empty($errors)) {
                 foreach ($errors as $libxml_error) {
-                    /** @var $libxml_error libXMLError */
                     $error_messages[] = $libxml_error->message;
                 }
                 $error_message = implode(', ', $error_messages);
