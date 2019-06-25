@@ -145,7 +145,7 @@ final class Reader
 
         if ($has_children) {
             $msg = $xpath ? "Path: \"{$xpath}\" is not a leaf node." : 'This is not a leaf node';
-            $msg .= "\n\n" . $node->asXML();
+            $msg .= "\n\n" . mb_substr($node->asXML(), 0, 1024);
             throw new ReaderException($msg, ReaderException::NOT_A_LEAF_NODE);
         }
 
