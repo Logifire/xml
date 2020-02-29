@@ -14,6 +14,13 @@ final class Reader
      */
     private $xml;
 
+    /**
+     * List of namespaces in the document, defaults and prefixed.
+     * 
+     * @var string[]
+     */
+    private $namespaces;
+
     private function __construct(SimpleXMLElement $xml)
     {
 
@@ -55,13 +62,41 @@ final class Reader
         }
 
         $reader = new self($simple_xml_element);
+        $reader->namespaces = self::getDeclaredNamespaces($xml);
+
         return $reader;
     }
 
+    /**
+     * Added because of issues with SimpleXMLElements recursive namespace search.
+     * Gets defaults and prefixed namespaces.
+     * This is based on the XML 1.1 standard definition, see link.
+     * 
+     * @link https://www.w3.org/TR/xml-names11/#ns-decl
+     * @return array
+     */
+    private static function getDeclaredNamespaces(string $xml): array
+    {
+        $pattern = '/xmlns(?::\w+)?=["\'](?<namespace>[^"\']+)/';
+
+        preg_match_all($pattern, $xml, $matches);
+
+        $namespaces = $matches['namespace'] ?? [];
+
+        $namespaces = array_flip($namespaces);
+
+        return $namespaces;
+    }
+
+    /**
+     * Checks if a namespace is recursively present in the main document
+     * 
+     * @param string $namespace
+     * @return bool
+     */
     public function hasNamespace(string $namespace): bool
     {
-        $namespaces = $this->xml->getNamespaces(true);
-        return in_array($namespace, $namespaces);
+        return array_key_exists($namespace, $this->namespaces);
     }
 
     /**

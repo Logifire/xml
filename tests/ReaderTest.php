@@ -15,9 +15,32 @@ class ReaderTest extends TestCase
     public const AUTHOUR = self::BOOK . '/t:author';
     public const PREFIX = 't';
 
-    private function getXML(): string
+    private function getXML(string $file_path = '/data/sample-prefixed.xml'): string
     {
-        return file_get_contents(__DIR__ . '/data/sample.xml');
+        return file_get_contents(__DIR__ . $file_path);
+    }
+
+    /**
+     * @link https://developer.mozilla.org/en-US/docs/Web/SVG/Namespaces_Crash_Course#Redeclaring_the_default_namespace
+     */
+    public function testDefaultNamespaceOverwrite()
+    {
+        // XPath 1.0 does not include any concept of a "default" namespace
+        $xml = $this->getXML('/data/sample-default-namespace.xml');
+        $reader = Reader::create($xml, 'http://www.example.org/bookstore', 'b');
+
+        // New default
+        $reader->registerNamespace('http://www.example.org/extension', 'e');
+
+        // Prefixed
+        $reader->registerNamespace('http://www.example.org/second-extension', 'se');
+
+        $this->assertTrue($reader->hasNode('/b:bookstore'));
+        $this->assertTrue($reader->hasNode('/b:bookstore/e:extension/e:int'));
+        $this->assertTrue($reader->hasNode('/b:bookstore/se:extension/se:int'));
+
+        $this->assertSame(1, $reader->getInt('/b:bookstore/e:extension/e:int'));
+        $this->assertSame(2, $reader->getInt('/b:bookstore/se:extension/se:int'));
     }
 
     public function testReader()
@@ -147,7 +170,7 @@ class ReaderTest extends TestCase
         $this->expectExceptionCode(ReaderException::INVALID_XML);
 
         $xml = '<broken>';
-        
+
         Reader::create($xml);
     }
 }

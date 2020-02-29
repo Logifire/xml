@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore xmlns="http://www.example.org/bookstore">
+
+    <book category="cooking">
+        <title lang="en">Everyday Italian</title>
+        <author>Giada De Laurentiis</author>
+        <year>2005</year>
+        <price>30.00</price>
+    </book>
+
+    <extension xmlns="http://www.example.org/extension">
+        <int>1</int>
+    </extension>
+    
+    <se:extension xmlns:se="http://www.example.org/second-extension">
+        <se:int>2</se:int>
+    </se:extension>
+</bookstore>

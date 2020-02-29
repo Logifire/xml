@@ -14,7 +14,7 @@ class WriterTest extends TestCase
 
     private function getXML(): string
     {
-        return file_get_contents(__DIR__ . '/data/sample.xml');
+        return file_get_contents(__DIR__ . '/data/sample-prefixed.xml');
     }
 
     public function testWrongXML()
