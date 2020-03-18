@@ -32,7 +32,7 @@ class ReaderTest extends TestCase
         // New default
         $reader->registerNamespace('http://www.example.org/extension', 'e');
 
-        // Prefixed
+        // Prefixed nodes
         $reader->registerNamespace('http://www.example.org/second-extension', 'se');
 
         $this->assertTrue($reader->hasNode('/b:bookstore'));
@@ -41,6 +41,19 @@ class ReaderTest extends TestCase
 
         $this->assertSame(1, $reader->getInt('/b:bookstore/e:extension/e:int'));
         $this->assertSame(2, $reader->getInt('/b:bookstore/se:extension/se:int'));
+
+        // Relative path, working with child nodes
+
+        $collection = $reader->getCollection('/b:bookstore');
+
+        /** @var Reader $bookstore_reader */
+        $bookstore_reader = $collection[0];
+
+        $this->assertTrue($bookstore_reader->hasNamespace('http://www.example.org/extension'), 'Document namespaces are inherited');
+        $this->assertTrue($bookstore_reader->hasNode('b:book'), 'Registered namespaces are inherited');
+        $this->assertTrue($bookstore_reader->hasNode('e:extension'), 'Registered namespaces are inherited');
+        
+        $this->assertSame(1, $reader->getInt('e:extension/e:int'));
     }
 
     public function testReader()

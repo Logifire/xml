@@ -19,12 +19,21 @@ final class Reader
      * 
      * @var string[]
      */
-    private $namespaces;
+    private $document_namespaces;
 
-    private function __construct(SimpleXMLElement $xml)
+    /**
+     * List of user registered namespaces and prefixes in SimpleXMLElement
+     * 
+     * @var string[] [Prefix => (string) Namespace]
+     */
+    private $registered_namespaces;
+
+    private function __construct(SimpleXMLElement $xml, array $document_namespaces)
     {
 
         $this->xml = $xml;
+        $this->document_namespaces = $document_namespaces;
+        $this->registered_namespaces = [];
     }
 
     public static function create(string $xml, ?string $namespace = null, ?string $prefix = null): Reader
@@ -49,20 +58,16 @@ final class Reader
             libxml_use_internal_errors($libxml_error_init_setting);
         }
 
-        if ($namespace && !in_array($namespace, $simple_xml_element->getDocNamespaces())) {
-            throw new ReaderException($namespace . ' is not declared in the document.', ReaderException::INVALID_NAMESPACE);
-        }
-
         if ($namespace && !$prefix) {
             throw new ReaderException("Missing prefix for {$namespace}");
         }
 
-        if ($namespace && $prefix) {
-            $simple_xml_element->registerXPathNamespace($prefix, $namespace);
-        }
+        $namespaces = self::getDeclaredNamespaces($xml);
+        $reader = new self($simple_xml_element, $namespaces);
 
-        $reader = new self($simple_xml_element);
-        $reader->namespaces = self::getDeclaredNamespaces($xml);
+        if ($namespace && $prefix) {
+            $reader->registerNamespace($namespace, $prefix);
+        }
 
         return $reader;
     }
@@ -96,7 +101,7 @@ final class Reader
      */
     public function hasNamespace(string $namespace): bool
     {
-        return array_key_exists($namespace, $this->namespaces);
+        return array_key_exists($namespace, $this->document_namespaces);
     }
 
     /**
@@ -109,7 +114,11 @@ final class Reader
             throw new ReaderException($namespace . ' is not declared in the document.', ReaderException::INVALID_NAMESPACE);
         }
 
-        $this->xml->registerXPathNamespace($prefix, $namespace);
+        $is_registered = $this->xml->registerXPathNamespace($prefix, $namespace);
+
+        if ($is_registered) {
+            $this->registered_namespaces[$prefix] = $namespace;
+        }
     }
 
     public function hasNode(string $xpath): bool
@@ -160,7 +169,14 @@ final class Reader
         }
 
         foreach ($children as $child) {
-            $readers[] = new self($child);
+            $reader = new self($child, $this->document_namespaces);
+
+            // Child SimpleXMLElements do not inherit registered namespaces
+            foreach ($this->registered_namespaces as $prefix => $namespace) {
+                $reader->registerNamespace($namespace, $prefix);
+            }
+
+            $readers[] = $reader;
         }
 
         return $readers;
