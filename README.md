@@ -1,5 +1,7 @@
 # XML
 
+[![Build Status](https://travis-ci.org/Logifire/xml.svg?branch=master)](https://travis-ci.org/Logifire/xml)
+
 Example:
 
 ```php
