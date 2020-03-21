@@ -39,21 +39,20 @@ class ReaderTest extends TestCase
         $this->assertTrue($reader->hasNode('/b:bookstore/e:extension/e:int'));
         $this->assertTrue($reader->hasNode('/b:bookstore/se:extension/se:int'));
 
-        $this->assertSame(1, $reader->getInt('/b:bookstore/e:extension/e:int'));
+        $this->assertSame(1, $reader->getInt('/b:bookstore/e:extension/e:int', 'Absolute path'));
+        $this->assertSame(1, $reader->getInt('e:extension/e:int', 'Relative path from bookstore node'));
         $this->assertSame(2, $reader->getInt('/b:bookstore/se:extension/se:int'));
 
-        // Relative path, working with child nodes
+        // Working with child nodes
 
-        $collection = $reader->getCollection('/b:bookstore');
+        $collection = $reader->getCollection('/b:bookstore/b:book');
 
         /** @var Reader $bookstore_reader */
         $bookstore_reader = $collection[0];
+        $this->assertSame('book', $bookstore_reader->getName());
 
         $this->assertTrue($bookstore_reader->hasNamespace('http://www.example.org/extension'), 'Document namespaces are inherited');
-        $this->assertTrue($bookstore_reader->hasNode('b:book'), 'Registered namespaces are inherited');
-        $this->assertTrue($bookstore_reader->hasNode('e:extension'), 'Registered namespaces are inherited');
-        
-        $this->assertSame(1, $reader->getInt('e:extension/e:int'));
+        $this->assertTrue($bookstore_reader->hasNode('b:title'), 'Registered namespaces are inherited');
     }
 
     public function testReader()

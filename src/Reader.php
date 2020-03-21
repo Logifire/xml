@@ -105,6 +105,16 @@ final class Reader
     }
 
     /**
+     * Gets the name of the actual node
+     * 
+     * @see self::getCollection()
+     */
+    public function getName(): string
+    {
+        return $this->xml->getName();
+    }
+
+    /**
      * You should call the hasNamespace method before calling this.
      * @see self::hasNamespace()
      */
