@@ -6,18 +6,17 @@ use PHPUnit\Framework\TestCase;
 
 class ReaderTest extends TestCase
 {
-
-    public const NAMESPACE = 'http://www.example.org/book';
-    public const BOOKSTORE = '/t:bookstore';
-    public const BOOK = self::BOOKSTORE . '/t:book';
-    public const FIRST_BOOK_CATEGORY = self::BOOK . '[1]/@category';
-    public const FIRST_BOOK_YEAR = self::BOOK . '[1]/t:year';
-    public const AUTHOUR = self::BOOK . '/t:author';
-    public const PREFIX = 't';
+    public const NAMESPACE           = 'http://www.example.org/book';
+    public const BOOKSTORE           = '/t:bookstore';
+    public const BOOK                = self::BOOKSTORE.'/t:book';
+    public const FIRST_BOOK_CATEGORY = self::BOOK.'[1]/@category';
+    public const FIRST_BOOK_YEAR     = self::BOOK.'[1]/t:year';
+    public const AUTHOUR             = self::BOOK.'/t:author';
+    public const PREFIX              = 't';
 
     private function getXML(string $file_path = '/data/sample-prefixed.xml'): string
     {
-        return file_get_contents(__DIR__ . $file_path);
+        return file_get_contents(__DIR__.$file_path);
     }
 
     /**
@@ -26,7 +25,7 @@ class ReaderTest extends TestCase
     public function testDefaultNamespaceOverwrite()
     {
         // XPath 1.0 does not include any concept of a "default" namespace
-        $xml = $this->getXML('/data/sample-default-namespace.xml');
+        $xml    = $this->getXML('/data/sample-default-namespace.xml');
         $reader = Reader::create($xml, 'http://www.example.org/bookstore', 'b');
 
         // New default
@@ -51,16 +50,17 @@ class ReaderTest extends TestCase
         $bookstore_reader = $collection[0];
         $this->assertSame('book', $bookstore_reader->getName());
 
-        $this->assertTrue($bookstore_reader->hasNamespace('http://www.example.org/extension'), 'Document namespaces are inherited');
+        $this->assertTrue($bookstore_reader->hasNamespace('http://www.example.org/extension'),
+            'Document namespaces are inherited');
         $this->assertTrue($bookstore_reader->hasNode('b:title'), 'Registered namespaces are inherited');
     }
 
     public function testReader()
     {
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $this->assertTrue($reader->hasNode(self::BOOKSTORE));
-        $this->assertFalse($reader->hasNode(self::BOOKSTORE . '/invalid'));
+        $this->assertFalse($reader->hasNode(self::BOOKSTORE.'/invalid'));
 
         $collection = $reader->getCollection(self::BOOK);
         $this->assertCount(4, $collection, 'Three books found');
@@ -68,13 +68,9 @@ class ReaderTest extends TestCase
         /* @var $book Reader */
         $book = $collection[0];
         $this->assertSame(
-            'cooking',
-            $book->getString('@category'),
-            'Get attribute via relative path from collection');
+            'cooking', $book->getString('@category'), 'Get attribute via relative path from collection');
         $this->assertSame(
-            'cooking',
-            $reader->getString(self::FIRST_BOOK_CATEGORY),
-            'Get attribute');
+            'cooking', $reader->getString(self::FIRST_BOOK_CATEGORY), 'Get attribute');
 
         $this->assertSame(2005, $reader->getInt(self::FIRST_BOOK_YEAR));
     }
@@ -82,23 +78,23 @@ class ReaderTest extends TestCase
     public function testInvalidSyntax()
     {
         $this->expectExceptionCode(ReaderException::INVALID_PATH);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
-        $reader->getString(self::BOOKSTORE . '@invalid');
+        $reader->getString(self::BOOKSTORE.'@invalid');
     }
 
     public function testPathNotFound()
     {
         $this->expectExceptionCode(ReaderException::PATH_NOT_FOUND);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
-        $reader->getString(self::BOOKSTORE . '/invalid');
+        $reader->getString(self::BOOKSTORE.'/invalid');
     }
 
     public function testAmbiguousPath()
     {
         $this->expectExceptionCode(ReaderException::AMBIGUOUS_PATH);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::AUTHOUR);
     }
@@ -106,7 +102,7 @@ class ReaderTest extends TestCase
     public function testNotALeafNode()
     {
         $this->expectExceptionCode(ReaderException::NOT_A_LEAF_NODE);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->getString(self::BOOKSTORE);
     }
@@ -114,26 +110,26 @@ class ReaderTest extends TestCase
     public function testHasNodeInvalidSyntax()
     {
         $this->expectExceptionCode(ReaderException::INVALID_PATH);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
-        $reader->hasNode(self::BOOKSTORE . '@invalid');
+        $reader->hasNode(self::BOOKSTORE.'@invalid');
     }
 
     public function testMultipleNamespaces()
     {
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
 
-        $this->assertTrue($reader->hasNode(self::BOOKSTORE . '/n:identification/n:int'));
+        $this->assertTrue($reader->hasNode(self::BOOKSTORE.'/n:identification/n:int'));
 
-        $collection = $reader->getCollection(self::BOOKSTORE . '/n:identification/n:int');
+        $collection = $reader->getCollection(self::BOOKSTORE.'/n:identification/n:int');
 
         $numbers = [];
 
         for ($i = 1; $i <= count($collection); $i++) {
             /* @var $node Reader */
-            $numbers[] = $reader->getInt(self::BOOKSTORE . "/n:identification/n:int[{$i}]");
+            $numbers[] = $reader->getInt(self::BOOKSTORE."/n:identification/n:int[{$i}]");
         }
 
         $expected = [1, 2];
@@ -142,10 +138,10 @@ class ReaderTest extends TestCase
 
     public function testRelativeNode()
     {
-        $xml = $this->getXML();
-        $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
+        $xml        = $this->getXML();
+        $reader     = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
-        $collection = $reader->getCollection(self::BOOKSTORE . '/n:identification/n:int');
+        $collection = $reader->getCollection(self::BOOKSTORE.'/n:identification/n:int');
 
         $numbers = [];
 
@@ -161,17 +157,17 @@ class ReaderTest extends TestCase
     public function testRelativeNodeNotALeafSimpleValue()
     {
         $this->expectExceptionCode(ReaderException::NOT_A_VALUE);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader->registerNamespace('http://www.example.org/identification', 'n');
-        $reader = $reader->getCollection(self::BOOKSTORE . '/n:identification')[0];
+        $reader = $reader->getCollection(self::BOOKSTORE.'/n:identification')[0];
         $reader->getInt();
     }
 
     public function testRelativeNodeNotALeaf()
     {
         $this->expectExceptionCode(ReaderException::NOT_A_VALUE);
-        $xml = $this->getXML();
+        $xml    = $this->getXML();
         $reader = Reader::create($xml, self::NAMESPACE, self::PREFIX);
         $reader = $reader->getCollection(self::BOOKSTORE)[0];
         $reader->getString();
@@ -184,5 +180,21 @@ class ReaderTest extends TestCase
         $xml = '<broken>';
 
         Reader::create($xml);
+    }
+
+    public function testAsXml()
+    {
+        $expected_xml = '<book>Hello World</book>';
+        $xml          = "<bookstore>{$expected_xml}</bookstore>";
+
+        $reader = Reader::create($xml);
+
+        $books = $reader->getCollection('/bookstore/book');
+
+        /** @var Reader $book */
+        $book     = $books[0];
+        $node_xml = $book->asXml();
+
+        $this->assertEquals($expected_xml, $node_xml);
     }
 }

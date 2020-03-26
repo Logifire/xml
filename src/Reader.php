@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace Logifire\XML;
 
 use Exception;
@@ -8,7 +9,6 @@ use SimpleXMLElement;
 
 final class Reader
 {
-
     /**
      * @var SimpleXMLElement
      */
@@ -31,8 +31,8 @@ final class Reader
     private function __construct(SimpleXMLElement $xml, array $document_namespaces)
     {
 
-        $this->xml = $xml;
-        $this->document_namespaces = $document_namespaces;
+        $this->xml                   = $xml;
+        $this->document_namespaces   = $document_namespaces;
         $this->registered_namespaces = [];
     }
 
@@ -63,7 +63,7 @@ final class Reader
         }
 
         $namespaces = self::getDeclaredNamespaces($xml);
-        $reader = new self($simple_xml_element, $namespaces);
+        $reader     = new self($simple_xml_element, $namespaces);
 
         if ($namespace && $prefix) {
             $reader->registerNamespace($namespace, $prefix);
@@ -112,6 +112,16 @@ final class Reader
     public function getName(): string
     {
         return $this->xml->getName();
+    }
+
+    /**
+     * The actually node as XML, node tag inclusive.
+     * 
+     * @return string
+     */
+    public function asXml(): string
+    {
+        return $this->xml->asXML();
     }
 
     /**
@@ -171,7 +181,7 @@ final class Reader
      */
     public function getCollection(string $xpath): array
     {
-        $readers = [];
+        $readers  = [];
         $children = @$this->xml->xpath($xpath);
 
         if (empty($children)) {
@@ -205,13 +215,14 @@ final class Reader
         }
 
         if (empty($nodes)) {
-            $msg = $xpath ? "Path: \"{$xpath}\" not found." : 'Node does not contain a simple value.';
+            $msg  = $xpath ? "Path: \"{$xpath}\" not found." : 'Node does not contain a simple value.';
             $code = $xpath ? ReaderException::PATH_NOT_FOUND : ReaderException::NOT_A_VALUE;
             throw new ReaderException($msg, $code);
         }
 
         if (count($nodes) > 1) {
-            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.", ReaderException::AMBIGUOUS_PATH);
+            throw new ReaderException("Path: \"{$xpath}\" is ambiguous. Multiple nodes exists.",
+                ReaderException::AMBIGUOUS_PATH);
         }
 
         $node = $nodes[0];
@@ -236,7 +247,7 @@ final class Reader
     {
 
         $has_children = false;
-        $namespaces = $node->getNamespaces() ?: $node->getDocNamespaces();
+        $namespaces   = $node->getNamespaces() ?: $node->getDocNamespaces();
         $namespaces[] = null; // If no namespace is present
 
         foreach ($namespaces as $namespace) {
